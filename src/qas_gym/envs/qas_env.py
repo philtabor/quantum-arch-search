@@ -4,14 +4,14 @@ from io import StringIO
 from typing import Dict, List, Optional, Union
 
 import cirq
-import gym
+import gymnasium as gym
 import numpy as np
 from gym import spaces
 from gym.utils import seeding
 
 
 class QuantumArchSearchEnv(gym.Env):
-    metadata = {'render.modes': ['ansi', 'human']}
+    metadata = {'render_modes': ['ansi', 'human']}
 
     def __init__(
         self,
@@ -64,9 +64,9 @@ class QuantumArchSearchEnv(gym.Env):
         self.np_random, seed = seeding.np_random(seed)
         return [seed]
 
-    def reset(self):
+    def reset(self, options=None, seed=None):
         self.circuit_gates = []
-        return self._get_obs()
+        return self._get_obs(), {'fidelity': None, 'circuit': None}
 
     def _get_cirq(self, maybe_add_noise=False):
         circuit = cirq.Circuit(cirq.I(qubit) for qubit in self.qubits)
@@ -114,13 +114,13 @@ class QuantumArchSearchEnv(gym.Env):
             reward = -self.reward_penalty
 
         # check if terminal
-        terminal = (reward > 0.) or (len(self.circuit_gates) >=
-                                     self.max_timesteps)
+        terminal = reward > 0.
+        truncated = len(self.circuit_gates) >= self.max_timesteps
 
         # return info
         info = {'fidelity': fidelity, 'circuit': self._get_cirq()}
 
-        return observation, reward, terminal, info
+        return observation, reward, terminal, truncated, info
 
     def render(self, mode='human'):
         outfile = StringIO() if mode == 'ansi' else sys.stdout

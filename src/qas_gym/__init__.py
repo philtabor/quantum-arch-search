@@ -1,4 +1,4 @@
-from gym.envs.registration import register
+from gymnasium.envs.registration import register
 
 register(id='QuantumArchSearch-v0',
          entry_point='qas_gym.envs:QuantumArchSearch',
